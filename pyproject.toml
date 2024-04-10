@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "luxgiant-cleaning"
 version = "0.1.0"
-description = ""
-authors = ["luisggon <luisggon@flyde.io>"]
+description = "package to automate cleaning of raw data from LuxGiant project"
+authors = ["luisggon <luisggon@protonmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 pandas = "^2.2.1"
 scikit-learn = "^1.4.2"
 
