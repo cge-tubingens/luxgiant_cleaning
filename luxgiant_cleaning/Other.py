@@ -350,3 +350,216 @@ class BMICalculator(BaseEstimator, TransformerMixin):
                 X_copy.iloc[k,2] = np.nan
 
         return X_copy
+
+class Move2Other(BaseEstimator, TransformerMixin):
+
+    def __init__(self, feature_name:str, sep:str='___') -> None:
+        super().__init__()
+        self.sep = sep
+        self.feature_name = feature_name
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        cols = X_copy.columns
+
+        result = X_copy.iloc[:, :-1].sum(axis=1)
+        for k in range(len(result)):
+            if result[k] == 0 and X_copy.iloc[k,-1]==0:
+                X_copy.iloc[k,-1]=1
+        
+        return X_copy
+
+class ClassifyOnset(BaseEstimator, TransformerMixin):
+
+    def __init__(self, outputCol:str='onset_type') -> None:
+        super().__init__()
+        self.outputCol = outputCol
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        col = X_copy.columns
+
+        X_copy[self.outputCol] = X_copy[col[0]].apply(
+            lambda x: self.type_onset(x)
+        )
+
+        return X_copy
+    
+    @staticmethod
+    def type_onset(x):
+
+        if np.isnan(x): return None 
+
+        if x <= 18: return 0
+        elif x <= 50: return 1
+        else:
+            return 2
+        
+class ClassifyEducation(BaseEstimator, TransformerMixin):
+
+    def __init__(self, outputCol:str='education_level') -> None:
+        super().__init__()
+        self.outputCol = outputCol
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        col = X_copy.columns
+
+        X_copy[self.outputCol] = X_copy[col[0]].apply(
+            lambda x: self.ed_level(x)
+        )
+
+        return X_copy
+    
+    @staticmethod
+    def ed_level(x):
+
+        if np.isnan(x): return None 
+
+        if x == 0: return 0
+        elif x <= 7: return 1
+        elif x <= 12: return 2
+        else:
+            return 3
+
+class RecodeGeography(TransformerMixin, BaseEstimator):
+
+    def __init__(self, outputCol:str='zone_of_origin') -> None:
+        super().__init__()
+        self.outputCol = outputCol
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        col = X_copy.columns
+
+        
+
+        X_copy[self.outputCol] = X_copy[col[0]].apply(
+            lambda x: self.recoding(x)
+        )
+
+        return X_copy
+    
+    @staticmethod
+    def recoding(x):
+
+        recode_dict = {
+            1:5, 2:3, 3:3, 4:3, 5:2, 6:5, 7:4, 8:1, 9:1, 10:1, 11:3, 12:5, 13:5, 14:2, 15:4, 16:3, 
+            17:3, 18:3, 19:3, 20:3, 21:1, 22:1, 23:3, 24:5, 25:5, 26:3, 27:2, 28:2, 29:3, 30:5, 
+            31:1, 32:4, 33:4, 34:1, 35:5, 36:5,
+        }
+
+        if np.isnan(x):return None
+        else:
+            return recode_dict[x]
+
+class FromUPDRStoMDS(TransformerMixin, BaseEstimator):
+
+    def __init__(self, outputStr:str='estim_MDS') -> None:
+        super().__init__()
+        self.outputStr = outputStr
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        cols = X_copy.columns
+
+        X_copy['updrs_part_iv'] = X_copy[cols[4]] + X_copy[cols[5]] + X_copy[cols[6]]
+
+        X_copy[self.outputStr + '_part_i'] = X_copy.apply(
+            lambda row: self.compute_mds1_from_updrs1(hoehn_yahr=row[0], updrs_1=row[1]), axis=1
+        )
+
+        X_copy[self.outputStr + '_part_ii'] = X_copy.apply(
+            lambda row: self.compute_mds2_from_updrs2(hoehn_yahr=row[0], updrs_2=row[2]), axis=1
+        )
+        X_copy[self.outputStr + '_part_iii'] = X_copy.apply(
+            lambda row: self.compute_mds3_from_updrs3(hoehn_yahr=row[0], updrs_3=row[3]), axis=1
+        )
+        X_copy[self.outputStr + '_part_iv'] = X_copy.apply(
+            lambda row: self.compute_mds4_from_updrs4(hoehn_yahr=row[0], updrs_4=row['updrs_part_iv']), axis=1
+        )
+        X_copy[self.outputStr + 'total'] = X_copy[self.outputStr + '_part_i']\
+             + X_copy[self.outputStr + '_part_ii'] + X_copy[self.outputStr + '_part_iii']\
+             + X_copy[self.outputStr + '_part_iv']
+
+        return X_copy.drop(columns='updrs_part_iv', inplace=False)
+    
+    @staticmethod
+    def compute_mds1_from_updrs1(hoehn_yahr:str, updrs_1:str):
+
+        if np.isnan(hoehn_yahr): return np.nan
+
+        elif hoehn_yahr == 0: return 0
+        elif 1 <= hoehn_yahr and hoehn_yahr <=2.5: return np.round(updrs_1*2.5 + 4.7,0)
+        elif hoehn_yahr == 3: return np.round(updrs_1*2. + 7.7,0)
+        else:
+            return np.round(updrs_1*1.6 + 10.8,0)
+
+    @staticmethod
+    def compute_mds2_from_updrs2(hoehn_yahr:str, updrs_2:str):
+
+        if np.isnan(hoehn_yahr): return np.nan
+
+        elif hoehn_yahr == 0: return 0
+        elif 1 <= hoehn_yahr and hoehn_yahr <=2.5: return np.round(updrs_2*1.1 + 0.2,0)
+        elif hoehn_yahr == 3: return np.round(updrs_2 + 1.5,0)
+        else:
+            return np.round(updrs_2 + 4.7,0)
+        
+    @staticmethod
+    def compute_mds3_from_updrs3(hoehn_yahr:str, updrs_3:str):
+
+        if np.isnan(hoehn_yahr): return np.nan
+
+        elif hoehn_yahr == 0: return 0
+        elif 1 <= hoehn_yahr and hoehn_yahr <=2.5: return np.round(updrs_3*1.2 + 2.3,0)
+        elif hoehn_yahr == 3: return np.round(updrs_3*1.2 + 1.0,0)
+        else:
+            return np.round(updrs_3*1.1 + 7.5,0)
+        
+    @staticmethod
+    def compute_mds4_from_updrs4(hoehn_yahr:str, updrs_4:str):
+
+        if np.isnan(hoehn_yahr): return np.nan
+
+        elif hoehn_yahr == 0: return 0
+        elif 1 <= hoehn_yahr and hoehn_yahr <=2.5: return np.round(updrs_4*1.0 - 0.3,0)
+        elif hoehn_yahr == 3: return np.round(updrs_4*1.0 - 0.3,0)
+        else:
+            return np.round(updrs_4*1.1 + 0.8,0)
+
