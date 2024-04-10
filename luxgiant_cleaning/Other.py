@@ -562,4 +562,3 @@ class FromUPDRStoMDS(TransformerMixin, BaseEstimator):
         elif hoehn_yahr == 3: return np.round(updrs_4*1.0 - 0.3,0)
         else:
             return np.round(updrs_4*1.1 + 0.8,0)
-
