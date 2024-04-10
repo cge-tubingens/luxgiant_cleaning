@@ -105,4 +105,3 @@ class AgeCorrector(TransformerMixin, BaseEstimator):
 
         number = re.sub(r'[^0-9]', '', text)
         return number
-
