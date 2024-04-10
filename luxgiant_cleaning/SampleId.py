@@ -548,6 +548,14 @@ class idFormatMarker(BaseEstimator, TransformerMixin):
 class idLength(BaseEstimator, TransformerMixin):
 
     def __init__(self, outputCol:str='id_length') -> None:
+
+        """
+        Initialize the idLength transformer.
+
+        Parameters:
+        - outputCol (str): Name of the output column containing the computed lengths. Default is 'id_length'.
+        """
+
         super().__init__()
         self.outputCol = outputCol
 
@@ -558,6 +566,22 @@ class idLength(BaseEstimator, TransformerMixin):
         return self
     
     def transform(self, X:pd.DataFrame, y=None):
+
+        """
+        Transform method to compute the length of identifiers in a DataFrame column.
+
+        This method calculates the length of identifiers in the specified DataFrame column
+        and returns a new DataFrame with the length values in the output column.
+
+        Parameters:
+        -----------
+        X (pd.DataFrame): Input DataFrame.
+        y : None
+
+        Returns:
+        --------
+        - pd.DataFrame: Transformed DataFrame with the computed lengths in the output column.
+        """
 
         X_copy = X.copy()
         col = X_copy.columns[0]
