@@ -1,5 +1,5 @@
 """
-Python module with stand alone funtions to perform wel defined tasks
+Python module with stand-alone funtions to perform well defined tasks
 """
 
 import pandas as pd
