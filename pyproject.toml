@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "luxgiant-cleaning"
+version = "0.1.0"
+description = ""
+authors = ["luisggon <luisggon@flyde.io>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.1"
+scikit-learn = "^1.4.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
