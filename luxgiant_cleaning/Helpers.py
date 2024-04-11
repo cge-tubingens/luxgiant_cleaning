@@ -2,6 +2,8 @@
 Python module with stand-alone funtions to perform well defined tasks
 """
 
+import argparse
+
 import pandas as pd
 
 def recover_columns_names(columns:list)->list:
@@ -112,3 +114,19 @@ def rearrange_columns(X:pd.DataFrame, original_cols:list)->pd.DataFrame:
         if col not in original_cols: new_cols.append(col)
 
     return new_cols + old_cols
+
+def arg_parser()->dict:
+
+    # define parser
+    parser = argparse.ArgumentParser(description='Adresses to input STATA file and output folder')
+
+    # parameters of quality control
+    parser.add_argument('--input-file', type=str, nargs='?', default=None, const=None, help='Full path to the STATA file with REDCap raw data.')
+
+    # path to data and names of files
+    parser.add_argument('--output-folder', type=str, nargs='?', default=None, const=None, help='Full path to the to folder where cleaned file will be saved.')
+
+    # parse args and turn into dict
+    args = parser.parse_args()
+
+    return args
