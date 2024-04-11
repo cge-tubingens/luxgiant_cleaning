@@ -5,7 +5,6 @@ Command Line Interface
 import os
 
 import pandas as pd
-import numpy as np
 
 from pandas.io.stata import StataReader, StataWriter117
 from sklearn.pipeline import Pipeline
@@ -17,8 +16,10 @@ def execute_main()->None:
     args = arg_parser()
     args_dict = vars(args)
 
-    input_file   = args_dict['input-file']
-    output_folder= args_dict['output-folder']
+    print(args_dict.keys())
+
+    input_file   = args_dict['input_file']
+    output_folder= args_dict['output_folder']
 
     # check paths
     if not os.path.exists(input_file):
@@ -167,13 +168,13 @@ def execute_main()->None:
     # =======================================================================
 
     df_IDs = df_1[~df_1['no_ID_prob']][cols_to_report].reset_index(drop=True)
-    # df_IDs.to_csv('data/problematic_id.csv')
+    df_IDs.to_csv(os.path.join(output_folder, 'problematic_id.csv'))
 
     df_ID_dup = df_1[df_1['participant_id']\
                     .duplicated(keep=False)][cols_to_report]\
                     .copy().sort_values('participant_id')\
                     .reset_index(drop=True)
-    df_ID_dup.to_csv('data/duplicated_id.csv')
+    df_ID_dup.to_csv(os.path.join(output_folder, 'duplicated_id.csv'))
 
     # to stay, filtering process
     df_1 = df_1[df_1['no_ID_prob']].reset_index(drop=True).drop(columns=['no_ID_prob', 'control'])
