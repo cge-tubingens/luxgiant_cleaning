@@ -327,3 +327,8 @@ def execute_main()->None:
                                         convert_dates =date_dict,
                                         variable_labels=stata.variable_labels())
     writer.write_file()
+
+    return None
+
+if __name__ == "__main__":
+    execute_main()
