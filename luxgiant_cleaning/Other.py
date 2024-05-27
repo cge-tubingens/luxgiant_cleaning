@@ -562,3 +562,53 @@ class FromUPDRStoMDS(TransformerMixin, BaseEstimator):
         elif hoehn_yahr == 3: return np.round(updrs_4*1.0 - 0.3,0)
         else:
             return np.round(updrs_4*1.1 + 0.8,0)
+
+class RecodeCenters(TransformerMixin, BaseEstimator):
+
+    def __init__(self, outputCol:str='sites') -> None:
+        super().__init__()
+        self.outputCol = outputCol
+
+    def get_feature_names_out(self):
+        pass
+
+    def fit(self, X:pd.DataFrame, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+
+        X_copy = X.copy()
+        col = X_copy.columns
+
+        X_copy[self.outputCol] = X_copy[col[0]].apply(
+            lambda x: self.recoding(x)
+        )
+
+        return X_copy
+    
+    @staticmethod
+    def recoding(x):
+
+        recode_dict = {
+            "nims"         : "NIMS",
+            "aiims"        : "AIIMS",
+            "iin_kolkatha" : "IIN Kolkata",
+            "sctimst"      : "SCTIMST",
+            "nimhans"      : "NIMHANS",  
+            "dhirubhai_aak": "DAK",
+            "vikram"       : "Vikram",
+            "aster"        : "Aster",
+            "aster_cmi"    : "Aster CMI",
+            "global"       : "Global",
+            "pgi"          : "PGI",
+            "jaslok"       : "Jaslok",
+            "aiims_r"      : "AIIMS-R",
+            "nsc"          : "NSC",
+            "sk"           : "SK",
+            "goa"          : "Goa",
+            "narayana"     : "Narayana"
+        }
+
+        if x is None:return None
+        else:
+            return recode_dict[x]
