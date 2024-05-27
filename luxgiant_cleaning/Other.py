@@ -606,7 +606,8 @@ class RecodeCenters(TransformerMixin, BaseEstimator):
             "nsc"          : "NSC",
             "sk"           : "SK",
             "goa"          : "Goa",
-            "narayana"     : "Narayana"
+            "narayana"     : "Narayana",
+            "vijaya"       : "Vijaya"
         }
 
         if x is None:return None
