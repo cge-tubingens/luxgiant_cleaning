@@ -103,9 +103,11 @@ class AgeCorrector(TransformerMixin, BaseEstimator):
         number : str
             Extracted numerical values from the input text.
         """
-
-        number = re.sub(r'[^0-9]', '', text)
-        return number
+        if type(text) != float:
+            number = re.sub(r'[^0-9]', '', text)
+            return number
+        else:
+            return text
 
 class BasicAgeImputer(BaseEstimator, TransformerMixin):
 
