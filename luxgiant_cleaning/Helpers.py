@@ -126,6 +126,10 @@ def arg_parser()->dict:
     # path to data and names of files
     parser.add_argument('--output-folder', type=str, nargs='?', default=None, const=None, help='Full path to the to folder where cleaned file will be saved.')
 
+    # path to ids to choose
+    parser.add_argument('--ids-to-select', type=str, nargs='?', default=None, const=None, help='Full path to the to csv file with selected ids.')
+
+
     # parse args and turn into dict
     args = parser.parse_args()
 

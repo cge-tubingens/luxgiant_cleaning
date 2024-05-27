@@ -20,6 +20,7 @@ def execute_main()->None:
 
     input_file   = args_dict['input_file']
     output_folder= args_dict['output_folder']
+    ids_2_select = args_dict['ids_to_select']
 
     # check paths
     if not os.path.exists(input_file):
@@ -328,6 +329,18 @@ def execute_main()->None:
                                         convert_dates =date_dict,
                                         variable_labels=stata.variable_labels())
     writer.write_file()
+
+    if ids_2_select is not None:
+
+        df_IDS = pd.read_csv(ids_2_select, index_col=False)
+        df= df_7.merge(df_IDS, on=df_IDS.columns[0])
+        writer_sel = pd.io.stata.StataWriter117(
+            os.path.join(output_folder, 'selected_data.dat'), df,
+            value_labels  =labels, 
+            convert_dates =date_dict,
+            variable_labels=stata.variable_labels()
+        )
+        writer_sel.write_file()
 
     return None
 
