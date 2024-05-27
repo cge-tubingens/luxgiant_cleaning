@@ -36,7 +36,7 @@ def execute_main()->None:
     from DiseaseDur import DiseaseDuration, AgeOnset
     from SympDur import SymptomDuration, SymptomDurationFixer, SymptomOnsetFixer
     from Education import EducationStandandizer, ExtractEducation, EducationSubstition, EducationMissing, EducationExtreme
-    from Other import AssessmentDate, HeightWeight, BMICalculator
+    from Other import AssessmentDate, HeightWeight, BMICalculator, RecodeCenters
     from MOCA import CleanerMOCA, FormatMOCA, ExtremesMOCA
     from Extremes import ExtremesYears, ExtremeValues, DateFixer, FormatBDI, FormatString2Int
     from Other import Move2Other, ClassifyOnset, ClassifyEducation, RecodeGeography, FromUPDRStoMDS
@@ -128,6 +128,9 @@ def execute_main()->None:
     natWork_pipe = Pipeline([
         ('nature', Move2Other(feature_name='nature_of_work').set_output(transform='pandas'))
     ])
+    centers_pipe = Pipeline([
+        ('center', RecodeCenters().set_output(transform='pandas'))
+    ])
 
     years_onset_columns = [
     'falls_year_of_onset', 'falls_year_of_onse_2', 'falls_year_of_onse_3', 'falls_year_of_onse_4',
@@ -156,6 +159,7 @@ def execute_main()->None:
     ('mdsII', mdsII_pipe, ['total_score_part_ii']),
     ('mdsIII', mdsIII_pipe, ['total_score_part_iii']),
     ('mdsIV', mdsIV_pipe, ['total_score_part_iv']),
+    ('center_rec', centers_pipe, ['redcap_data_access_group']),
     ('natWork', natWork_pipe, ['nature_of_work___1', 'nature_of_work___2', 'nature_of_work___3', 'nature_of_work___4'])
     ],
     remainder='passthrough').set_output(transform='pandas')
