@@ -16,8 +16,6 @@ def execute_main()->None:
     args = arg_parser()
     args_dict = vars(args)
 
-    print(args_dict.keys())
-
     input_file   = args_dict['input_file']
     output_folder= args_dict['output_folder']
     ids_2_select = args_dict['ids_to_select']
