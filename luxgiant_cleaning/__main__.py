@@ -289,11 +289,6 @@ def execute_main()->None:
     df_6.columns = recover_columns_names(df_6)
     df_6
 
-    # ===========================================================
-    #          TESTING
-
-
-
     onset_type = Pipeline([
         ('typeOnset', ClassifyOnset(outputCol='onset_type').set_output(transform='pandas'))
     ])
