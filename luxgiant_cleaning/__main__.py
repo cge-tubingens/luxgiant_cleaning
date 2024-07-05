@@ -9,7 +9,7 @@ import pandas as pd
 from pandas.io.stata import StataReader, StataWriter117
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from Helpers import arg_parser
+from luxgiant_cleaning.Helpers import arg_parser
 
 def execute_main()->None:
 
@@ -28,18 +28,18 @@ def execute_main()->None:
         raise FileNotFoundError("Output folder cannot be found.")
     
     # imports
-    from SampleId import idKeepAlphanumeric, idFormatMarker, idAddZero, idMiddleNull, idZeroSubstitute
-    from InfoId import centreExtractor, ControlStatus
-    from Age import AgeCorrector, BasicAgeImputer
-    from DiseaseDur import DiseaseDuration, AgeOnset
-    from SympDur import SymptomDuration, SymptomDurationFixer, SymptomOnsetFixer
-    from Education import EducationStandandizer, ExtractEducation, EducationSubstition, EducationMissing, EducationExtreme
-    from Other import AssessmentDate, HeightWeight, BMICalculator, RecodeCenters
-    from MOCA import CleanerMOCA, FormatMOCA, ExtremesMOCA
-    from Extremes import ExtremesYears, ExtremeValues, DateFixer, FormatBDI, FormatString2Int
-    from Other import Move2Other, ClassifyOnset, ClassifyEducation, RecodeGeography, FromUPDRStoMDS
+    from luxgiant_cleaning.SampleId import idKeepAlphanumeric, idFormatMarker, idAddZero, idMiddleNull, idZeroSubstitute
+    from luxgiant_cleaning.InfoId import centreExtractor, ControlStatus
+    from luxgiant_cleaning.Age import AgeCorrector, BasicAgeImputer
+    from luxgiant_cleaning.DiseaseDur import DiseaseDuration, AgeOnset
+    from luxgiant_cleaning.SympDur import SymptomDuration, SymptomDurationFixer, SymptomOnsetFixer
+    from luxgiant_cleaning.Education import EducationStandandizer, ExtractEducation, EducationSubstition, EducationMissing, EducationExtreme
+    from luxgiant_cleaning.Other import AssessmentDate, HeightWeight, BMICalculator, RecodeCenters
+    from luxgiant_cleaning.MOCA import CleanerMOCA, FormatMOCA, ExtremesMOCA
+    from luxgiant_cleaning.Extremes import ExtremesYears, ExtremeValues, DateFixer, FormatBDI, FormatString2Int
+    from luxgiant_cleaning.Other import Move2Other, ClassifyOnset, ClassifyEducation, RecodeGeography, FromUPDRStoMDS
     
-    from Helpers import recover_columns_names, detect_datetime_cols, select_value_labels, rearrange_columns
+    from luxgiant_cleaning.Helpers import recover_columns_names, detect_datetime_cols, select_value_labels, rearrange_columns
 
     date_cols = [
     'date_of_assessment', 'date', 'retirement_year', 'start_date', 'start_date_2', 'start_date_3',
@@ -170,14 +170,45 @@ def execute_main()->None:
     #               FILTER
     # =======================================================================
 
+    # problematic ids
     df_IDs = df_1[~df_1['no_ID_prob']][cols_to_report].reset_index(drop=True)
     df_IDs.to_csv(os.path.join(output_folder, 'problematic_id.csv'))
 
+    # duplicated ids
     df_ID_dup = df_1[df_1['participant_id']\
                     .duplicated(keep=False)][cols_to_report]\
                     .copy().sort_values('participant_id')\
                     .reset_index(drop=True)
     df_ID_dup.to_csv(os.path.join(output_folder, 'duplicated_id.csv'))
+
+    # controls with family history of PD, dementia or tremors
+    mask_controls = (df_1['Status']==0)
+    df_ID_fam = df_1[mask_controls].reset_index(drop=True)
+
+    mask_hist_PD  = (df_ID_fam["family_member_diagnosed_wi"]==1)
+    mask_hist_trem= (df_ID_fam["family_member_diagnosed_wi_2"]==1)
+    mask_hist_dem = (df_ID_fam["family_member_diagnosed"]==1)
+
+    mask_stop_w = (df_ID_fam["reason"]==1)
+    df_work = df_ID_fam[mask_stop_w].reset_index(drop=True)
+
+    df_ID_fam = df_ID_fam[mask_hist_dem | mask_hist_PD | mask_hist_trem].reset_index(drop=True)
+    cols_2_keep = [
+        'participant_id', 'Status', "family_member_diagnosed_wi", "family_member_diagnosed_wi_2", 
+        "family_member_diagnosed"
+    ]
+    df_ID_fam = df_ID_fam[cols_2_keep].copy()
+    df_ID_fam.to_csv(os.path.join(output_folder, 'family_hist.csv'))
+
+    
+    df_work = df_work[['participant_id']].copy()
+    df_work.to_csv(os.path.join(output_folder, 'stop_working.csv'))
+
+
+    df_1.loc[mask_controls & (df_1["family_member_diagnosed_wi"]==1), "family_member_diagnosed_wi"]  =0
+    df_1.loc[mask_controls & (df_1["family_member_diagnosed_wi_2"]==1), "family_member_diagnosed_wi_2"]=0
+    df_1.loc[mask_controls & (df_1["family_member_diagnosed"]==1), "family_member_diagnosed"]     =0
+    df_1.loc[mask_controls & (df_1["reason"]==1), "reason"]=2
 
     # to stay, filtering process
     df_1 = df_1[df_1['no_ID_prob']].reset_index(drop=True).drop(columns=['no_ID_prob', 'control'])
